@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (apiCfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request) {
+func (apiCfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Name string `json:"name"`
 	}
@@ -34,6 +34,18 @@ func (apiCfg *apiConfig)handlerCreateUser(w http.ResponseWriter, r *http.Request
 	respondJSON(w, 201, databaseUserToUser(user))
 }
 
-func (apiCfg *apiConfig)handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
+func (apiCfg *apiConfig) handlerGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	respondJSON(w, 200, databaseUserToUser(user))
+}
+
+func (apiConfig *apiConfig) handlerGetPostsForUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	posts, err := apiConfig.DB.GetPostsForUser(r.Context(), database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit:  10,
+	})
+	if err != nil {
+		respondError(w, 500, fmt.Sprintf("Cannot get posts for user: %v", err))
+		return
+	}
+	respondJSON(w, 200, databasePostsToPosts(posts))
 }
